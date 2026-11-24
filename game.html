@@ -54,7 +54,7 @@
     -webkit-font-smoothing:antialiased;
   }
   button{font-family:inherit; min-height:44px; cursor:pointer}
-  .wrap{max-width:980px;margin:0 auto;padding:20px 16px 40px}
+  .wrap{max-width:1280px;margin:0 auto;padding:20px 16px 40px}
   .top{
     display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between;
     margin:6px 0 16px;
@@ -274,7 +274,7 @@
     <section class="card" aria-label="Obstacles to dodge">
       <h3>Watch out for</h3>
       <p class="lede">Hit any of these and Flim loses a life, plus she will have something loud to say about it.</p>
-      <div class="row"><div><div class="name">Rico the dog</div><div class="desc">A yellow lab with backyard jurisdiction and a wagging tail.</div></div><div class="danger">Dodge</div></div>
+      <div class="row"><div><div class="name">Rico the dog</div><div class="desc">A big white dog with backyard jurisdiction and a wagging tail.</div></div><div class="danger">Dodge</div></div>
       <div class="row"><div><div class="name">The Roomba</div><div class="desc">Relentless. Silent. Has bumped into the same chair 400 times.</div></div><div class="danger">Dodge</div></div>
       <div class="row"><div><div class="name">Mankey</div><div class="desc">Her twin brother, aka Catman. Standing right in the way, on purpose.</div></div><div class="danger">Dodge</div></div>
       <div class="row"><div><div class="name">Closed doors</div><div class="desc">Tall, wooden and completely unreasonable. Go around them.</div></div><div class="danger">Dodge</div></div>
@@ -318,16 +318,16 @@
   var W = 900, H = 500, DPR = 1;
   function resize(){
     var w = stage.clientWidth || 900;
-    var ratio = w < 600 ? 0.98 : 0.56;
-    var minH = w < 600 ? 380 : 320;
-    var h = Math.max(minH, Math.min(540, Math.round(w * ratio)));
+    var ratio = w < 600 ? 0.92 : 0.44;
+    var minH = w < 600 ? 360 : 340;
+    var h = Math.max(minH, Math.min(560, Math.round(w * ratio)));
     DPR = Math.min(2, window.devicePixelRatio || 1);
     canvas.width = Math.round(w * DPR);
     canvas.height = Math.round(h * DPR);
     canvas.style.height = h + 'px';
     W = w; H = h;
     ctx.setTransform(DPR,0,0,DPR,0,0);
-    if (player) { player.y = clamp(player.y, 56, H-48); player.targetY = clamp(player.targetY, 56, H-48); }
+    if (player) { var gmin = Math.round(H*0.20)+46; player.y = clamp(player.y, gmin, H-48); player.targetY = clamp(player.targetY, gmin, H-48); }
   }
 
   function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
@@ -430,15 +430,15 @@
   }
   function spawnFood(){
     var f = weightedFood();
-    var y = rand(64, H-58);
+    var y = rand(Math.round(H*0.20)+54, H-58);
     entities.push({type:'food', kind:f.kind, label:f.label, points:f.points, r:f.r, x:W+40, y:y, baseY:y, bob:rand(0,Math.PI*2), passed:false});
   }
   function spawnObstacle(){
     var o = pick(OBSTACLES);
     var y;
-    if (o.kind==='door') y = rand(90, H-90);
+    if (o.kind==='door') y = rand(Math.round(H*0.20)+80, H-72);
     else if (o.kind==='roomba') y = rand(H*0.45, H-46);
-    else y = rand(70, H-60);
+    else y = rand(Math.round(H*0.20)+54, H-60);
     entities.push({type:'obstacle', kind:o.kind, label:o.label, r:o.r, w:o.w, h:o.h, x:W+50, y:y, baseY:y, bob:rand(0,Math.PI*2), wag:rand(0,Math.PI*2)});
   }
   function addPopup(x,y,text,color,big){
@@ -493,7 +493,7 @@
 
   function update(dt){
     elapsed += dt/60;
-    speed = Math.min(7.6, 3.4 + elapsed*0.055);
+    speed = Math.min(12.5, 3.6 + elapsed*0.14 + Math.pow(Math.max(0, elapsed-45), 1.35)*0.012);
     scroll += speed;
     frame++;
 
@@ -506,12 +506,12 @@
     } else {
       player.y += vy;
     }
-    player.y = clamp(player.y, 52, H-44);
+    player.y = clamp(player.y, Math.round(H*0.20)+46, H-44);
     player.legPhase += speed*0.09;
 
     foodTimer--; obsTimer--;
-    if (foodTimer<=0){ spawnFood(); foodTimer = Math.round(rand(46,86) - Math.min(22, elapsed*0.25)); if (foodTimer<26) foodTimer=26; }
-    if (obsTimer<=0){ spawnObstacle(); obsTimer = Math.round(rand(78,128) - Math.min(34, elapsed*0.35)); if (obsTimer<48) obsTimer=48; }
+    if (foodTimer<=0){ spawnFood(); foodTimer = Math.round(rand(42,80) - Math.min(30, elapsed*0.45)); if (foodTimer<20) foodTimer=20; }
+    if (obsTimer<=0){ spawnObstacle(); obsTimer = Math.round(rand(72,120) - Math.min(48, elapsed*0.6)); if (obsTimer<34) obsTimer=34; }
 
     var now = performance.now();
     for (var i=entities.length-1;i>=0;i--){
@@ -564,61 +564,101 @@
   }
 
   function drawBackground(){
-    var sky = ctx.createLinearGradient(0,0,0,H);
-    sky.addColorStop(0,'#AEE3F7'); sky.addColorStop(0.42,'#D8F3DC'); sky.addColorStop(0.43,'#8FC97A'); sky.addColorStop(1,'#6FA653');
-    ctx.fillStyle = sky; ctx.fillRect(0,0,W,H);
+    // Grounded backyard: thin sky strip at the very top, then house/fence line,
+    // then lawn fills most of the frame so Flim is clearly running on the ground.
+    var horizon = Math.round(H*0.20);
+    var sky = ctx.createLinearGradient(0,0,0,horizon);
+    sky.addColorStop(0,'#9ED6F2'); sky.addColorStop(1,'#CDEFF7');
+    ctx.fillStyle = sky; ctx.fillRect(0,0,W,horizon);
     ctx.fillStyle = '#FFD66B';
-    ctx.beginPath(); ctx.arc(W-84, 52, 28, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(W-70, 30, 20, 0, Math.PI*2); ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,.92)';
-    drawCloud(((W - (scroll*0.18)%(W+220))+W+220)%(W+220)-110, 44, 1);
-    drawCloud(((W - (scroll*0.12+320)%(W+260))+W+260)%(W+260)-130, 84, 0.75);
+    drawCloud(((W - (scroll*0.10)%(W+220))+W+220)%(W+220)-110, 26, 0.7);
+    drawCloud(((W - (scroll*0.07+340)%(W+260))+W+260)%(W+260)-130, 52, 0.55);
 
-    var fenceY = H*0.34;
-    ctx.fillStyle = '#B07A4A'; ctx.fillRect(0, fenceY, W, 8);
-    ctx.fillStyle = '#C98F57'; ctx.fillRect(0, fenceY+26, W, 8);
-    ctx.fillStyle = '#D9A066';
-    var picketW = 26, gap = 10, off = -(scroll*0.55 % (picketW+gap));
+    // Distant tree tops just peeking over the fence line
+    ctx.fillStyle = '#5E8F4E';
+    var treeOff = -(scroll*0.18 % 190);
+    for (var tr=treeOff-40; tr<W+190; tr+=190){
+      ctx.beginPath(); ctx.arc(tr+30, horizon-6, 30, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(tr+78, horizon-14, 38, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(tr+128, horizon-4, 26, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.fillStyle = '#4E7A3A';
+    for (var tr2=treeOff-40; tr2<W+190; tr2+=190){
+      ctx.beginPath(); ctx.arc(tr2+78, horizon-20, 24, 0, Math.PI*2); ctx.fill();
+    }
+
+    // Fence sits ON the horizon — everything below it is ground
+    var fenceTop = horizon - 34;
+    ctx.fillStyle = '#C99A63';
+    var picketW = 24, gap = 8, off = -(scroll*0.45 % (picketW+gap));
     for (var x=off; x<W+40; x+=picketW+gap){
       ctx.beginPath();
-      ctx.moveTo(x, fenceY+36); ctx.lineTo(x, fenceY-16); ctx.lineTo(x+picketW/2, fenceY-28); ctx.lineTo(x+picketW, fenceY-16); ctx.lineTo(x+picketW, fenceY+36); ctx.closePath(); ctx.fill();
+      ctx.moveTo(x, horizon+4); ctx.lineTo(x, fenceTop+10); ctx.lineTo(x+picketW/2, fenceTop); ctx.lineTo(x+picketW, fenceTop+10); ctx.lineTo(x+picketW, horizon+4); ctx.closePath(); ctx.fill();
     }
-    ctx.fillStyle = '#79B264'; ctx.fillRect(0, fenceY+36, W, H-(fenceY+36));
-    ctx.fillStyle = '#8FC97A';
-    var off2 = -(scroll % 46);
-    for (var gx=off2; gx<W+46; gx+=46){
-      ctx.fillRect(gx, H-54, 30, 6);
-      ctx.fillRect(gx+52, H-104, 24, 5);
+    ctx.fillStyle = '#A97A48'; ctx.fillRect(0, fenceTop+16, W, 6);
+    ctx.fillStyle = '#A97A48'; ctx.fillRect(0, horizon-8, W, 6);
+    // Shadow the fence casts onto the lawn — sells that the lawn is a floor
+    ctx.fillStyle = 'rgba(46,80,30,.28)'; ctx.fillRect(0, horizon+2, W, 14);
+    ctx.fillStyle = 'rgba(46,80,30,.12)'; ctx.fillRect(0, horizon+16, W, 12);
+
+    // Lawn: base fill for everything below the horizon
+    var lawn = ctx.createLinearGradient(0,horizon,0,H);
+    lawn.addColorStop(0,'#7FB069'); lawn.addColorStop(0.35,'#74A65E'); lawn.addColorStop(1,'#5E8F4E');
+    ctx.fillStyle = lawn; ctx.fillRect(0, horizon+2, W, H-(horizon+2));
+
+    // Mowing stripes scrolling with the world (perspective bands on the ground)
+    ctx.fillStyle = 'rgba(255,255,255,.07)';
+    var stripeW = 92, sOff = -(scroll % (stripeW*2));
+    for (var sx=sOff; sx<W+stripeW*2; sx+=stripeW*2){
+      ctx.fillRect(sx, horizon+2, stripeW, H-(horizon+2));
     }
-    ctx.strokeStyle = 'rgba(62,90,40,.35)'; ctx.lineWidth = 2;
-    var off3 = -(scroll*1 % 58);
+    // Horizontal ground bands get taller toward the bottom = floor receding
+    ctx.fillStyle = 'rgba(40,70,28,.10)';
+    var bandY = horizon+18, bandH = 7;
+    while (bandY < H){
+      ctx.fillRect(0, bandY, W, 3);
+      bandY += bandH + 16; bandH += 5;
+    }
+
+    // A worn dirt path Flim runs along, low in the frame
+    var pathY = H - Math.round(H*0.16);
+    ctx.fillStyle = 'rgba(196,158,102,.55)';
+    ctx.beginPath();
+    ctx.moveTo(0, pathY); ctx.lineTo(W, pathY-6); ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(160,124,72,.35)';
+    var pOff = -(scroll*1 % 120);
+    for (var px=pOff; px<W+120; px+=120){
+      ctx.beginPath(); ctx.ellipse(px+30, pathY+22, 22, 5, 0, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(px+82, pathY+44, 16, 4, 0, 0, Math.PI*2); ctx.fill();
+    }
+
+    // Grass tufts + flowers anchored to the ground plane
+    ctx.strokeStyle = 'rgba(42,78,32,.5)'; ctx.lineWidth = 2; ctx.lineCap='round';
+    var off3 = -(scroll % 58);
     for (var tx=off3; tx<W+58; tx+=58){
-      var ty = fenceY+74 + ((tx*7)%70);
-      ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx+4, ty-10); ctx.moveTo(tx+8, ty); ctx.lineTo(tx+10, ty-12); ctx.stroke();
+      var ty = horizon+34 + ((Math.abs(tx)*7)%Math.max(40,(H-horizon-50)));
+      if (ty > pathY-8 && ty < H-6) ty = horizon+40 + ((Math.abs(tx)*3)%40);
+      ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx+3, ty-9); ctx.moveTo(tx+7, ty); ctx.lineTo(tx+10, ty-11); ctx.stroke();
     }
-    ctx.fillStyle = '#E9C46A';
-    var off4 = -(scroll*0.9 % 170);
-    for (var fx=off4+30; fx<W+170; fx+=170){
-      ctx.beginPath(); ctx.arc(fx, H-30, 4, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#EF476F'; ctx.beginPath(); ctx.arc(fx+64, H-78, 4, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#E9C46A';
+    var off4 = -(scroll*0.95 % 190);
+    for (var fx=off4+36; fx<W+190; fx+=190){
+      ctx.fillStyle = '#E9C46A'; ctx.beginPath(); ctx.arc(fx, H-96, 4, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#EF6F8B'; ctx.beginPath(); ctx.arc(fx+70, horizon+64, 4, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(fx+120, H-140, 3.5, 0, Math.PI*2); ctx.fill();
     }
-    ctx.fillStyle = 'rgba(255,255,255,.20)';
-    ctx.fillRect(0, H-16, W, 3);
+    // Foreground grass fringe along the very bottom edge
+    ctx.fillStyle = '#4E7A3A'; ctx.fillRect(0, H-7, W, 7);
+    ctx.strokeStyle = '#4E7A3A'; ctx.lineWidth = 2;
+    var fOff = -(scroll*1.1 % 22);
+    for (var bx=fOff; bx<W+22; bx+=22){
+      ctx.beginPath(); ctx.moveTo(bx, H-6); ctx.lineTo(bx+3, H-15); ctx.moveTo(bx+9, H-6); ctx.lineTo(bx+13, H-17); ctx.stroke();
+    }
   }
   function drawCloud(x,y,s){
     ctx.save(); ctx.translate(x,y); ctx.scale(s,s);
     ctx.beginPath(); ctx.arc(0,0,18,0,Math.PI*2); ctx.arc(20,-6,22,0,Math.PI*2); ctx.arc(42,0,16,0,Math.PI*2); ctx.fill();
-    ctx.restore();
-  }
-  function label(text,x,y){
-    ctx.save();
-    ctx.font = '900 10px Nunito, sans-serif';
-    ctx.textAlign = 'center';
-    var w = ctx.measureText(text).width + 12;
-    ctx.fillStyle = 'rgba(255,255,255,.92)';
-    roundRect(x-w/2, y, w, 16, 8); ctx.fill();
-    ctx.fillStyle = '#5C3420';
-    ctx.fillText(text, x, y+12);
     ctx.restore();
   }
   function roundRect(x,y,w,h,r){
@@ -628,6 +668,8 @@
 
   function drawFlim(x,y,inv){
     ctx.save(); ctx.translate(x,y);
+    ctx.fillStyle = 'rgba(30,55,20,.28)';
+    ctx.beginPath(); ctx.ellipse(0, 36, 34, 7, 0, 0, Math.PI*2); ctx.fill();
     if (inv && Math.floor(performance.now()/110)%2===0) ctx.globalAlpha = 0.35;
     var bob = Math.sin(frame*0.35)*2;
     ctx.translate(0,bob);
@@ -729,7 +771,6 @@
       ctx.fillStyle='#2E2119'; ctx.beginPath(); ctx.arc(5,-3,2,0,Math.PI*2); ctx.fill();
     }
     ctx.restore();
-    label(e.label + ' +' + e.points, e.x, e.y + 30);
   }
 
   function drawObstacle(e){
@@ -738,14 +779,17 @@
     ctx.beginPath(); ctx.ellipse(0, (e.h/2)+4, e.w/2, 6, 0, 0, Math.PI*2); ctx.fill();
     if (e.kind==='rico'){
       var wag = Math.sin(e.wag*2)*7;
-      ctx.strokeStyle='#D9A441'; ctx.lineWidth=6; ctx.lineCap='round';
+      ctx.strokeStyle='#EDEDED'; ctx.lineWidth=6; ctx.lineCap='round';
       ctx.beginPath(); ctx.moveTo(-24,-4); ctx.quadraticCurveTo(-38,-14+wag,-34,-26+wag); ctx.stroke();
-      ctx.strokeStyle='#C98F2D'; ctx.lineWidth=5;
+      ctx.strokeStyle='#D8D8D8'; ctx.lineWidth=5;
       var lp = Math.sin(frame*0.4)*5;
       ctx.beginPath(); ctx.moveTo(-14,14); ctx.lineTo(-14+lp,28); ctx.moveTo(14,14); ctx.lineTo(14-lp,28); ctx.stroke();
-      ctx.fillStyle='#F2C14E'; ctx.beginPath(); ctx.ellipse(0,0,28,17,0,0,Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(28,-8,15,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle='#D9A441'; ctx.beginPath(); ctx.ellipse(22,-2,7,13,0.5,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#FFFFFF'; ctx.beginPath(); ctx.ellipse(0,0,28,17,0,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle='rgba(120,120,120,.35)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.ellipse(0,0,28,17,0,0,Math.PI*2); ctx.stroke();
+      ctx.fillStyle='#FFFFFF'; ctx.beginPath(); ctx.arc(28,-8,15,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle='rgba(120,120,120,.35)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(28,-8,15,0,Math.PI*2); ctx.stroke();
+      ctx.fillStyle='#E8E8E8'; ctx.beginPath(); ctx.ellipse(22,-2,7,13,0.5,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#FFF5F5'; ctx.beginPath(); ctx.ellipse(-8,4,10,6,0.2,0,Math.PI*2); ctx.fill();
       ctx.fillStyle='#2E2119'; ctx.beginPath(); ctx.arc(34,-10,2.4,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(42,-4,3,0,Math.PI*2); ctx.fill();
       ctx.strokeStyle='#C0392B'; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(16,2); ctx.lineTo(28,6); ctx.stroke();
     } else if (e.kind==='roomba'){
@@ -773,11 +817,8 @@
       ctx.strokeStyle='rgba(92,52,32,.65)'; ctx.lineWidth=2;
       roundRect(-18,-46,36,38,4); ctx.stroke(); roundRect(-18,2,36,38,4); ctx.stroke();
       ctx.fillStyle='#FFD66B'; ctx.beginPath(); ctx.arc(16,0,4.5,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle='#FFF3D6'; roundRect(-20,-72,40,15,7); ctx.fill();
-      ctx.fillStyle='#5C3420'; ctx.font='900 8px Nunito'; ctx.textAlign='center'; ctx.fillText('CLOSED',0,-61);
     }
     ctx.restore();
-    label(e.label, e.x, e.y + (e.h/2) + 10);
   }
 
   function draw(){
@@ -806,11 +847,6 @@
       ctx.fillStyle = pu.color; ctx.fillText(pu.text, pu.x, pu.y);
     }
     ctx.globalAlpha = 1;
-    if (state==='ready' && player){
-      ctx.fillStyle='rgba(61,43,31,.82)';
-      ctx.font='700 19px Fredoka, sans-serif'; ctx.textAlign='center';
-      ctx.fillText('Flim starts here. The table loot comes from the right.', W/2, 30);
-    }
     ctx.restore();
   }
 
@@ -877,13 +913,13 @@
   }
   canvas.addEventListener('pointerdown', function(ev){
     ev.preventDefault(); canvas.setPointerCapture(ev.pointerId);
-    var p = canvasPos(ev); player.targetY = clamp(p.y, 52, H-44); pointerActive = true;
+    var p = canvasPos(ev); player.targetY = clamp(p.y, Math.round(H*0.20)+46, H-44); pointerActive = true;
     if (state==='ready') {}
   });
   canvas.addEventListener('pointermove', function(ev){
     if (!pointerActive && ev.pointerType==='mouse' && ev.buttons===0) return;
     if (ev.buttons>0 || pointerActive){
-      var p = canvasPos(ev); player.targetY = clamp(p.y, 52, H-44); pointerActive = true;
+      var p = canvasPos(ev); player.targetY = clamp(p.y, Math.round(H*0.20)+46, H-44); pointerActive = true;
     }
   });
   canvas.addEventListener('pointerup', function(){ pointerActive = false; });
