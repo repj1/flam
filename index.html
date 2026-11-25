@@ -40,11 +40,42 @@
   nav .wrap {
     max-width: 960px;
     margin: 0 auto;
-    padding: 14px 20px;
+    padding: 12px 20px;
     display: flex;
-    flex-wrap: wrap;
     gap: 4px;
     align-items: center;
+  }
+  .nav-links { display: flex; gap: 4px; align-items: center; }
+  .menu-btn {
+    display: none;
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .menu-btn span { display: block; width: 22px; height: 2px; background: var(--ink); border-radius: 2px; }
+  @media (min-width: 721px) {
+    .nav-more { display: none; }
+  }
+  @media (max-width: 720px) {
+    .menu-btn { display: flex; }
+    .nav-links {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--bg);
+      flex-direction: column;
+      align-items: stretch;
+      padding: 8px 20px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    .nav-links a { padding: 12px; font-size: 16px; }
+    nav.open .nav-links { display: flex; }
   }
   nav a {
     color: var(--ink);
@@ -109,6 +140,8 @@
     aspect-ratio: 4 / 3;
   }
   .photos.one img { aspect-ratio: 16 / 9; }
+  .photos.full { grid-template-columns: 1fr; }
+  .photos.full img { aspect-ratio: auto; height: auto; }
   @media (max-width: 640px) {
     .photos.two, .photos.three { grid-template-columns: 1fr; }
   }
@@ -198,17 +231,20 @@
 <nav>
   <div class="wrap">
     <a class="brand" href="#top">flam.fan</a>
-    <a href="#story">Story</a>
-    <a href="#names">Names</a>
-    <a href="#sounds">Sounds</a>
-    <a href="#household">Household</a>
-    <a href="#mankey">Mankey</a>
-    <a href="#milk">Milk</a>
-    <a href="#record">The Record</a>
-    <a href="#mealtimes">Mealtimes</a>
-    <a href="#likes">Likes</a>
-    <a href="#gallery">Gallery</a>
-    <a href="#game">Game</a>
+    <button class="menu-btn" type="button" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    <div class="nav-links">
+      <a href="#story">Story</a>
+      <a href="#names">Names</a>
+      <a href="#sounds">Sounds</a>
+      <a href="#household" class="nav-more">Household</a>
+      <a href="#mankey">Mankey</a>
+      <a href="#milk" class="nav-more">Milk</a>
+      <a href="#record" class="nav-more">The Record</a>
+      <a href="#mealtimes" class="nav-more">Mealtimes</a>
+      <a href="#likes" class="nav-more">Likes</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#game">Game</a>
+    </div>
   </div>
 </nav>
 <main id="top">
@@ -216,11 +252,11 @@
   <section class="hero">
     <p class="eyebrow">A Flimmy Flammy Cat from Miami</p>
     <h1>Flim Flam</h1>
-    <p class="lede">Legal name: Squeaks. Loud, slightly overweight, sixteen, and still going strong.</p>
+    <p class="lede">Cat from Miami.</p>
     <div class="facts">
       <span class="fact">Born <b>June 2010</b></span>
       <span class="fact">Age <b>16</b></span>
-      <span class="fact">Legal name <b>Squeaks</b></span>
+      <span class="fact">Title <b>Queen</b></span>
       <span class="fact">From <b>Miami</b></span>
     </div>
     <img class="hero-photo" src="flam-hero.jpg" alt="Flim Flam on the deck in sunlight">
@@ -239,21 +275,18 @@
 
   <section id="names">
     <p class="eyebrow">The Names</p>
-    <h2>One cat. Many names.</h2>
+    <h2>The Flam, AKA&hellip;</h2>
     <div class="chips">
-      <span class="chip">Squeaks</span>
       <span class="chip">Flim Flam</span>
       <span class="chip">Riff Raff</span>
       <span class="chip">Flam</span>
       <span class="chip">Keekar</span>
-      <span class="chip">Fat Keekar</span>
       <span class="chip">Fat K</span>
       <span class="chip">Miami Cat</span>
-      <span class="chip">A Flimmy Flammy Cat from Miami</span>
       <span class="chip queen">The Queen</span>
     </div>
-    <p>Squeaks is the legal name. Rarely used. Flim Flam is the classic. Riff Raff is for when she is up to something. The Queen is because she is.</p>
-    <div class="photos two">
+    <p>One cat. Many names. Flim Flam is the classic. Riff Raff is for when she is up to something. The Queen is because she is.</p>
+    <div class="photos full">
       <img src="flam-names-queen.jpg" alt="Flim on the deck railing, looking queenly">
       <img src="flam-names-fatk.jpg" alt="Fat K's fried chicken box graphic">
     </div>
@@ -264,10 +297,11 @@
     <h2>She does not whisper.</h2>
     <p>She has never whispered. Volume is a lifestyle.</p>
     <div class="soundboard">
-      <button type="button" data-sound="MAH">MAH</button>
-      <button type="button" data-sound="RAH">RAH</button>
-      <button type="button" data-sound="MNERN">MNERN</button>
-      <button type="button" data-sound="Mee mah mmm rah">Mee mah mmm rah</button>
+      <button type="button" data-sound="Mee">Mee</button>
+      <button type="button" data-sound="Mah">Mah</button>
+      <button type="button" data-sound="Mmm">Mmm</button>
+      <button type="button" data-sound="Rah">Rah</button>
+      <button type="button" data-sound="Mnern">Mnern</button>
     </div>
     <p class="sound-note" id="sound-note">Tap a sound. Flim's own recordings are coming soon.</p>
     <div class="photos two">
@@ -279,9 +313,9 @@
   <section id="household">
     <p class="eyebrow">The Household</p>
     <h2>Family, as she sees it.</h2>
-    <p>Flim lives with her twin brother Mankey, aka Catman.</p>
-    <p>Flim's legal owner is David, Joseph's brother and Noah's stepdad. She is frequently called Joseph's cat, because he is the one who appreciates her the most. He does not own her. She knows this.</p>
-    <p>For most of her life she also lived with her mother, legally Jade, but to Joseph PC, aka Preggers Cat, who passed away.</p>
+    <p>The house runs on her schedule. Mankey, her twin brother, mostly tries to keep up.</p>
+    <p>David holds the paperwork, and Joseph gets called her owner because he appreciates her the most. Flim has never confirmed either arrangement.</p>
+    <p>Her mother Jade, known to Joseph as PC, shared the house with her most of her life, until she passed away.</p>
     <div class="photos two">
       <img src="flam-household-couch.jpg" alt="Mankey and Flim curled up on the couch">
       <img src="flam-household-three.jpg" alt="Flim, Mankey, and PC together">
@@ -417,6 +451,18 @@
   <p>Website by Joseph and Noah.</p>
 </footer>
 <script>
+  var menuBtn = document.querySelector('.menu-btn');
+  var nav = document.querySelector('nav');
+  menuBtn.addEventListener('click', function () {
+    var open = nav.classList.toggle('open');
+    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.querySelectorAll('.nav-links a').forEach(function (a) {
+    a.addEventListener('click', function () {
+      nav.classList.remove('open');
+      menuBtn.setAttribute('aria-expanded', 'false');
+    });
+  });
   document.querySelectorAll('.soundboard button').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var note = document.getElementById('sound-note');
